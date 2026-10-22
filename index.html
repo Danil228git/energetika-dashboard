@@ -1,0 +1,1350 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Энергетика</title>
+<meta name="theme-color" content="#2a78d6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Энергетика">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Раскладка: шапка → вкладки → одна строка фильтров → KPI-плитки → карточки с графиками в сетке 2 колонки, на телефоне 1. */
+:root {
+  --page: #f3f4f7;
+  --card: #ffffff;
+  --card-2: #f7f8fb;
+  --ink: #141822;
+  --ink-2: #4b5262;
+  --muted: #7d8597;
+  --grid: #e7e9ef;
+  --axis: #c9cdd8;
+  --border: rgba(20, 24, 34, 0.10);
+  --accent: #2a78d6;
+  --accent-soft: rgba(42, 120, 214, 0.12);
+  --good: #0ca30c; --good-text: #006300;
+  --bad: #d03b3b; --bad-text: #b32f2f;
+  --warn: #fab219;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #6250d6;
+  --sup1: #5b6475; --sup2: #9aa3b5;
+  --seq-lo: #cde2fb; --seq-hi: #0d366b;
+  --shadow: 0 1px 2px rgba(20, 24, 34, 0.05), 0 8px 24px -16px rgba(20, 24, 34, 0.18);
+  --font-display: "Manrope", "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0f1115; --card: #171a21; --card-2: #1d2129;
+    --ink: #eceef2; --ink-2: #b6bcc9; --muted: #858c9c;
+    --grid: #262a33; --axis: #353a46; --border: rgba(255, 255, 255, 0.10);
+    --accent: #3987e5; --accent-soft: rgba(57, 135, 229, 0.18);
+    --good: #0ca30c; --good-text: #3fcf3f; --bad: #d03b3b; --bad-text: #ef6b6b;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
+    --sup1: #aab2c2; --sup2: #6f7889;
+    --seq-lo: #10305a; --seq-hi: #9ec5f4;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -16px rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #0f1115; --card: #171a21; --card-2: #1d2129;
+  --ink: #eceef2; --ink-2: #b6bcc9; --muted: #858c9c;
+  --grid: #262a33; --axis: #353a46; --border: rgba(255, 255, 255, 0.10);
+  --accent: #3987e5; --accent-soft: rgba(57, 135, 229, 0.18);
+  --good: #0ca30c; --good-text: #3fcf3f; --bad: #d03b3b; --bad-text: #ef6b6b;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
+  --sup1: #aab2c2; --sup2: #6f7889;
+  --seq-lo: #10305a; --seq-hi: #9ec5f4;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -16px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--page); color: var(--ink);
+  font-family: var(--font-body); font-size: 14px; line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+button, select, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: var(--accent); }
+[hidden] { display: none !important; }
+
+.wrap { max-width: 1240px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* шапка */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 18px 10px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.brand > div { min-width: 0; }
+.stamp span:last-child { white-space: normal; }
+.logo { width: 40px; height: 40px; border-radius: 12px; background: var(--accent); color: #fff; display: grid; place-items: center; flex: none; }
+.logo svg { width: 22px; height: 22px; }
+.brand h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; }
+.stamp { color: var(--muted); font-size: 12.5px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--good); display: inline-block; }
+.dot.stale { background: var(--warn); }
+.top-actions { display: flex; gap: 8px; }
+.btn { border: 1px solid var(--border); background: var(--card); border-radius: 10px; padding: 8px 12px; min-height: 40px; display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); }
+.btn:hover { color: var(--ink); border-color: var(--axis); }
+.btn:focus-visible, .chip:focus-visible, .tab:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn svg { width: 16px; height: 16px; }
+
+/* вкладки */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-top: 6px; overflow-x: auto; }
+.tab { background: none; border: 0; padding: 10px 14px; min-height: 44px; color: var(--muted); font-weight: 600; font-family: var(--font-display); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+
+/* фильтры */
+.filters { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--page); padding-block: 10px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; border-bottom: 1px solid var(--border); }
+.chips { display: flex; gap: 4px; overflow-x: auto; max-width: 100%; padding: 2px; }
+.chip { border: 1px solid var(--border); background: var(--card); border-radius: 999px; padding: 6px 12px; min-height: 36px; color: var(--ink-2); white-space: nowrap; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.chip .sw { margin-right: 6px; }
+.chip[aria-pressed="true"] .sw { outline: 2px solid rgba(255,255,255,0.7); }
+.today { display: grid; gap: 12px; }
+.today-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.today-head h2 { font-size: 17px; }
+.today-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.price-tile { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 16px; row-gap: 2px; }
+.price-tile .l { flex-basis: 100%; }
+.price-tile { background: var(--card-2); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; }
+.price-tile .l { color: var(--muted); font-size: 12.5px; }
+.price-tile .v { font-family: var(--font-display); font-size: 30px; font-weight: 800; letter-spacing: -0.01em; }
+.price-tile .v small { font-size: 13px; font-weight: 500; color: var(--muted); margin-left: 4px; }
+.price-tile .d { font-size: 12.5px; color: var(--ink-2); }
+.price-tile .d.up { color: var(--bad-text); } .price-tile .d.down { color: var(--good-text); }
+.st { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); white-space: nowrap; color: var(--ink-2); }
+.st::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.st.good::before { background: var(--good); } .st.warn::before { background: var(--warn); } .st.bad::before { background: var(--bad); }
+.st.bad { color: var(--bad-text); } .st.good { color: var(--good-text); }
+.st-mob { display: none; }
+.tcards { display: none; }
+@media (max-width: 700px) {
+  .today .tbl-wrap { display: none; }
+  .tcards { display: grid; gap: 8px; }
+  .tcard { border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; background: var(--card); display: grid; gap: 6px; }
+  .tcard.sum { background: var(--card-2); }
+  .tcard .nm { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-weight: 600; }
+  .tcard .kv { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-size: 13px; }
+  .tcard .kv div { display: flex; justify-content: space-between; gap: 6px; border-bottom: 1px solid var(--grid); padding: 3px 0; }
+  .tcard .kv span:first-child { color: var(--muted); font-size: 12px; }
+  .tcard .kv b { font-weight: 500; font-variant-numeric: tabular-nums; }
+  .tgroup { color: var(--ink-2); font-weight: 600; font-size: 13px; margin-top: 4px; }
+}
+tr.grp td { background: var(--card-2); color: var(--ink-2); font-weight: 600; text-align: left; border-top: 1px solid var(--axis); }
+tr.sub td { font-weight: 600; background: var(--card-2); }
+.custom { display: flex; gap: 6px; align-items: center; }
+.custom input, select.sel { border: 1px solid var(--border); background: var(--card); border-radius: 10px; padding: 6px 10px; min-height: 36px; }
+.flabel { color: var(--muted); font-size: 12.5px; }
+.check { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 13px; }
+
+/* сетка */
+main { padding-block: 16px 32px; display: grid; gap: 14px; }
+main > * { min-width: 0; }
+section[role="tabpanel"] { display: grid; gap: 14px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.kpi { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; box-shadow: var(--shadow); min-width: 0; }
+.kpi .l { color: var(--muted); font-size: 12.5px; }
+.kpi .v { font-family: var(--font-display); font-size: 24px; font-weight: 700; letter-spacing: -0.01em; margin-top: 2px; word-break: break-word; }
+.kpi .v small { font-size: 13px; font-weight: 500; color: var(--muted); margin-left: 4px; }
+.kpi .d { font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
+.kpi .d.up { color: var(--good-text); } .kpi .d.down { color: var(--bad-text); }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.grid2 > * { min-width: 0; }
+@media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; box-shadow: var(--shadow); min-width: 0; }
+.card-h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.card-h h2 { font-size: 15px; font-weight: 700; }
+.card-h .hint { color: var(--muted); font-size: 12.5px; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: var(--card); padding: 5px 10px; min-height: 32px; color: var(--ink-2); }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--ink); }
+.chart { position: relative; height: 280px; }
+.chart.tall { height: 320px; }
+.chart.short { height: 220px; }
+@media (max-width: 600px) { .chart { height: 240px; } .chart.tall { height: 260px; } }
+.empty { color: var(--muted); text-align: center; padding: 40px 10px; }
+
+/* таблицы */
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 7px 8px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums; }
+th { color: var(--muted); font-weight: 500; font-size: 12px; cursor: pointer; user-select: none; position: sticky; top: 0; background: var(--card); }
+th:first-child, td:first-child { text-align: left; }
+th.sorted { color: var(--ink); }
+tr.total td { font-weight: 600; border-top: 1px solid var(--axis); }
+tr.future td { color: var(--muted); }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.pill { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--card-2); color: var(--ink-2); margin-left: 6px; border: 1px solid var(--border); }
+.pos { color: var(--good-text); } .neg { color: var(--bad-text); }
+
+/* тепловая карта */
+.heat { display: grid; grid-template-columns: 56px repeat(24, minmax(10px, 1fr)); gap: 2px; font-size: 11px; color: var(--muted); }
+.heat .hd { text-align: center; }
+.heat .rl { text-align: right; padding-right: 6px; font-variant-numeric: tabular-nums; align-self: center; }
+.heat .c { aspect-ratio: 1 / 1; border-radius: 2px; min-height: 10px; }
+.heat .c:hover { outline: 2px solid var(--ink); outline-offset: -1px; }
+.heat-scale { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; margin-top: 8px; }
+.heat-scale .bar { flex: 1; height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--seq-lo), var(--seq-hi)); max-width: 220px; }
+.heat-tip { color: var(--ink-2); font-size: 12.5px; margin-top: 6px; min-height: 18px; }
+
+details summary { cursor: pointer; color: var(--ink-2); font-size: 13px; padding: 6px 0; }
+
+/* загрузка/ошибка */
+.overlay { position: fixed; inset: 0; background: var(--page); display: grid; place-items: center; z-index: 50; }
+.overlay .box { text-align: center; color: var(--muted); }
+.spinner { width: 28px; height: 28px; border: 3px solid var(--grid); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+.err { max-width: 520px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+.err pre { white-space: pre-wrap; font-size: 12px; color: var(--muted); max-height: 160px; overflow: auto; }
+.refetching main { opacity: 0.55; transition: opacity 0.2s; }
+.notice { background: var(--card-2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; color: var(--ink-2); font-size: 13px; }
+footer { color: var(--muted); font-size: 12px; padding-block: 8px 24px; }
+.warns { margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></div>
+      <div>
+        <h1>Энергетика</h1>
+        <div class="stamp"><span class="dot" id="dot"></span><span id="stamp">Загрузка данных…</span></div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="btn" id="btnRefresh" type="button" title="Перечитать таблицу"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg>Обновить</button>
+      <button class="btn" id="btnTheme" type="button" title="Светлая или тёмная тема"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg>Тема</button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="overview" aria-selected="true" type="button">Обзор</button>
+    <button class="tab" role="tab" data-tab="partner" aria-selected="false" type="button">Покупатели</button>
+    <button class="tab" role="tab" data-tab="rdn" aria-selected="false" type="button">Цены РДН</button>
+  </nav>
+
+  <div class="filters" id="filtersMain">
+    <span class="flabel">Месяц</span>
+    <div class="chips" id="monthChips"></div>
+    <span class="flabel" id="decadeLabel">Декада</span>
+    <div class="chips" id="decadeChips">
+      <button class="chip" data-dec="all" type="button">Весь месяц</button>
+      <button class="chip" data-dec="1" type="button">1-я</button>
+      <button class="chip" data-dec="2" type="button">2-я</button>
+      <button class="chip" data-dec="3" type="button">3-я</button>
+    </div>
+    <span class="flabel" id="buyerLabel" hidden>Покупатель</span>
+    <div class="chips" id="buyerChips" hidden></div>
+    <span class="flabel" id="periodText"></span>
+  </div>
+
+  <div class="filters" id="filtersRdn" hidden>
+    <span class="flabel">Период</span>
+    <div class="chips" id="rdnChips">
+      <button class="chip" data-rp="7" type="button">7 дней</button>
+      <button class="chip" data-rp="30" type="button">30 дней</button>
+      <button class="chip" data-rp="90" type="button">90 дней</button>
+      <button class="chip" data-rp="month" type="button">Месяц</button>
+      <button class="chip" data-rp="ytd" type="button">С начала года</button>
+      <button class="chip" data-rp="custom" type="button">Период…</button>
+    </div>
+    <div class="custom" id="rdnCustom" hidden>
+      <input type="date" id="rdnFrom" aria-label="Начало периода цен">
+      <span class="flabel">—</span>
+      <input type="date" id="rdnTo" aria-label="Конец периода цен">
+    </div>
+    <label class="check"><input type="checkbox" id="holAsSun" checked> праздники считать как воскресенье</label>
+    <span class="flabel" id="rdnPeriodText"></span>
+  </div>
+
+  <main>
+    <section id="tab-overview" role="tabpanel">
+      <div class="notice" id="ovNotice" hidden></div>
+      <div class="card today">
+        <div class="today-head"><h2 id="todayTitle">Сегодня</h2><span class="hint">потребление за сегодняшние сутки, платежи по плану на сегодня, долг за текущую декаду и за месяц; у поставщиков долг — наша недоплата</span></div>
+        <div class="today-grid">
+          <div class="price-tile" id="priceTile"></div>
+          <div class="tbl-wrap"><table id="tblToday"></table></div>
+          <div class="tcards" id="tcards"></div>
+        </div>
+      </div>
+      <div class="kpis" id="ovKpis"></div>
+      <div class="card">
+        <div class="card-h">
+          <h2>Потребление покупателей по дням</h2>
+          <div class="seg" id="unitSeg">
+            <button type="button" data-unit="uah" aria-pressed="true">грн</button>
+            <button type="button" data-unit="mwh" aria-pressed="false">МВт·ч</button>
+          </div>
+        </div>
+        <div class="chart tall"><canvas id="chConsume"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h2>Платежи покупателей по дням: план и факт</h2><span class="hint">по дате платежа</span></div>
+        <div class="chart"><canvas id="chPay"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h2>Контрагенты за период</h2><span class="hint">баланс — на последнюю дату · клик по заголовку сортирует</span></div>
+        <div class="tbl-wrap"><table id="tblPartners"></table></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h2>Доходность по покупателям</h2><span class="hint">за период</span></div>
+        <div class="chart short"><canvas id="chProfit"></canvas></div>
+      </div>
+    </section>
+
+    <section id="tab-partner" role="tabpanel" hidden>
+      <div class="kpis" id="bKpis"></div>
+      <div class="card">
+        <div class="card-h">
+          <h2 id="bConsTitle">Фактическое потребление по дням поставки</h2>
+          <div class="seg" id="unitSegB">
+            <button type="button" data-unit="uah" aria-pressed="true">грн</button>
+            <button type="button" data-unit="mwh" aria-pressed="false">МВт·ч</button>
+          </div>
+        </div>
+        <div class="chart"><canvas id="chBCons"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h2 id="bPayTitle">Платежи по дням: план и факт</h2><span class="hint">по дате поставки · линии — границы декад</span></div>
+        <div class="chart tall"><canvas id="chBPay"></canvas></div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-h"><h2>Итоги по декадам</h2><span class="hint">план и факт за декаду</span></div>
+          <div class="chart"><canvas id="chBDecades"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h2>Долг или переплата</h2><span class="hint">накопленная разница факт − план с начала месяца</span></div>
+          <div class="chart"><canvas id="chBDiff"></canvas></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h2>Дни по декадам</h2><span class="hint" id="bTableHint"></span></div>
+        <div class="tbl-wrap"><table id="tblBuyer"></table></div>
+      </div>
+    </section>
+
+    <section id="tab-rdn" role="tabpanel" hidden>
+      <div class="kpis" id="rdnKpis"></div>
+      <div class="card">
+        <div class="card-h"><h2>Цена РДН по дням</h2><span class="hint">Base без НДС, грн/МВт·ч · пунктир — средняя за период</span></div>
+        <div class="chart tall"><canvas id="chRdn"></canvas></div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-h"><h2>Ориентир на 7 дней</h2><span class="hint">по дням недели за 28 дней · не прогноз, ошибка модели ≈ 14 %</span></div>
+          <div class="chart"><canvas id="chForecast"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h2>Тепловая карта: день × час</h2><span class="hint" id="heatHint"></span></div>
+          <div class="tbl-wrap"><div class="heat" id="heat"></div></div>
+          <div class="heat-scale"><span id="heatMin"></span><div class="bar"></div><span id="heatMax"></span></div>
+          <div class="heat-tip" id="heatTip">Наведите на ячейку, чтобы увидеть цену.</div>
+        </div>
+      </div>
+      <details class="card" id="rdnMore">
+        <summary>Подробнее: дни недели, месяцы, профиль суток, таблица</summary>
+        <div class="grid2" style="margin-top:10px">
+          <div>
+            <div class="card-h"><h2>Средняя цена по дням недели</h2><span class="hint">за период</span></div>
+            <div class="chart"><canvas id="chWeekday"></canvas></div>
+          </div>
+          <div>
+            <div class="card-h"><h2>Сравнение месяцев</h2><span class="hint">средняя Base за месяц, вся история</span></div>
+            <div class="chart"><canvas id="chMonths"></canvas></div>
+          </div>
+        </div>
+        <div style="margin-top:14px">
+          <div class="card-h"><h2>Профиль суток</h2><span class="hint">средняя по часам за период · полоса 10–90 %</span></div>
+          <div class="chart"><canvas id="chHourly"></canvas></div>
+        </div>
+        <div style="margin-top:14px">
+          <div class="card-h"><h2>Таблица цен за период</h2></div>
+          <div class="tbl-wrap"><table id="tblRdn"></table></div>
+        </div>
+      </details>
+    </section>
+  </main>
+
+  <footer>
+    Источник: таблица «Статистика Электроэнергия ОРЭЭ» и биржевые цены РДН (ОРЕЕ). Суммы в гривнах с НДС, если не указано иное.
+    <div class="warns" id="warns"></div>
+  </footer>
+</div>
+
+<div class="overlay" id="loading"><div class="box"><div class="spinner"></div>Загружаем данные из таблицы…</div></div>
+<div class="overlay" id="errorBox" hidden>
+  <div class="err">
+    <h2 style="font-size:16px;margin-bottom:8px">Не удалось загрузить данные</h2>
+    <p style="color:var(--ink-2);margin:0 0 8px">Проверьте связь и попробуйте ещё раз. Если ошибка повторяется, напишите Данилу.</p>
+    <pre id="errorText"></pre>
+    <button class="btn" id="btnRetry" type="button">Повторить</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+/* ============================================================
+ * НАСТРОЙКИ
+ * ============================================================ */
+// Адрес веб-приложения (нужен только когда страница открыта вне Apps Script).
+var API_URL = 'https://script.google.com/macros/s/AKfycbxAyPqkHv3KlGvMecVPkseHetf55kNnosL50Wfe8FEjCZ7L0xyIAyzAtoTjbRloxYaT/exec';
+
+var WD_NAMES = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+var WD_ORDER = [1, 2, 3, 4, 5, 6, 0];
+var MONTHS = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
+var MONTHS_SHORT = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+
+var DATA = null;
+var charts = {};
+var state = {
+  tab: 'overview',
+  month: null, decade: 'all',
+  buyer: null,
+  unit: 'uah',
+  rp: '30', rdnFrom: null, rdnTo: null,
+  sortP: { key: 'name', dir: 1 }
+};
+
+/* ============================================================
+ * ЗАГРУЗКА
+ * ============================================================ */
+function loadData(nocache) {
+  if (window.google && google.script && google.script.run) {
+    return new Promise(function (ok, err) {
+      google.script.run.withSuccessHandler(ok).withFailureHandler(err).getDashboardJson(!!nocache);
+    });
+  }
+  var params = new URLSearchParams(location.search);
+  var base = params.get('api') || API_URL;
+  var url = base + (base.indexOf('?') === -1 ? '?' : '&') + 'api=1' + (nocache ? '&nocache=1' : '');
+  return fetch(url, { redirect: 'follow' }).then(function (r) { return r.text(); });
+}
+
+function parsePayload(text) {
+  var d;
+  try { d = JSON.parse(text); } catch (e) { throw new Error('Ответ не похож на данные: ' + String(text).slice(0, 200)); }
+  if (d.error) throw new Error(d.error);
+  var f = d.meta.dayFields;
+  d.partners.forEach(function (p) {
+    p.days = p.days.map(function (row) {
+      var o = {};
+      f.forEach(function (k, i) { o[k] = row[i]; });
+      return o;
+    });
+  });
+  d.rdn.days = d.rdn.days.map(function (r) {
+    return { date: r[0], base: r[1], min: r[2], max: r[3], hours: r[4] };
+  });
+  d.rdn.holidaySet = {};
+  (d.rdn.holidays || []).forEach(function (h) { d.rdn.holidaySet[h] = true; });
+  d.rdn.byDate = {};
+  d.rdn.days.forEach(function (r) { d.rdn.byDate[r.date] = r; });
+  return d;
+}
+
+function boot(nocache) {
+  var first = !DATA;
+  if (first) { show('loading', true); } else { document.body.classList.add('refetching'); }
+  show('errorBox', false);
+  loadData(nocache).then(function (text) {
+    DATA = parsePayload(text);
+    if (first) initControls();
+    renderAll();
+    show('loading', false);
+    document.body.classList.remove('refetching');
+  }).catch(function (e) {
+    show('loading', false);
+    document.body.classList.remove('refetching');
+    document.getElementById('errorText').textContent = (e && e.message) ? e.message : String(e);
+    show('errorBox', true);
+  });
+}
+
+function show(id, on) { document.getElementById(id).hidden = !on; }
+
+/* ============================================================
+ * ФОРМАТЫ И ДАТЫ
+ * ============================================================ */
+function fmtNum(n, dec) {
+  if (n === null || n === undefined || !isFinite(n)) return '—';
+  var neg = n < 0; n = Math.abs(n);
+  var s = n.toFixed(dec === undefined ? 0 : dec);
+  var parts = s.split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return (neg ? '−' : '') + parts[0] + (parts[1] ? ',' + parts[1] : '');
+}
+function fmtUAH(n) { return n === null || n === undefined ? '—' : fmtNum(n, 0) + ' ₴'; }
+function fmtCompact(n) {
+  if (n === null || n === undefined || !isFinite(n)) return '—';
+  var a = Math.abs(n), s = n < 0 ? '−' : '';
+  if (a >= 1e9) return s + fmtNum(a / 1e9, a >= 1e10 ? 1 : 2) + ' млрд';
+  if (a >= 1e6) return s + fmtNum(a / 1e6, a >= 1e7 ? 1 : 2) + ' млн';
+  if (a >= 1e4) return s + fmtNum(a / 1e3, 0) + ' тыс';
+  return s + fmtNum(a, 0);
+}
+function fmtSigned(n, dec) { if (n === null || n === undefined) return '—'; return (n > 0 ? '+' : '') + fmtNum(n, dec); }
+function fmtPct(n) { return n === null || n === undefined || !isFinite(n) ? '—' : fmtNum(n, 0) + ' %'; }
+
+function parseISO(s) { var p = s.split('-'); return Date.UTC(+p[0], +p[1] - 1, +p[2]); }
+function toISO(t) { var d = new Date(t); return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()); }
+function pad(n) { return (n < 10 ? '0' : '') + n; }
+function addDaysISO(s, n) { return toISO(parseISO(s) + n * 86400000); }
+function dShort(s) { return s ? s.slice(8, 10) + '.' + s.slice(5, 7) : ''; }
+function dFull(s) { return s ? s.slice(8, 10) + '.' + s.slice(5, 7) + '.' + s.slice(0, 4) : '—'; }
+function weekday(s) { return new Date(parseISO(s)).getUTCDay(); }
+function monthEnd(s) { var y = +s.slice(0, 4), m = +s.slice(5, 7); return toISO(Date.UTC(y, m, 0)); }
+function daysBetween(a, b) { return Math.round((parseISO(b) - parseISO(a)) / 86400000) + 1; }
+function inRange(s, from, to) { return s >= from && s <= to; }
+function dateList(from, to) { var out = []; for (var t = parseISO(from); t <= parseISO(to); t += 86400000) out.push(toISO(t)); return out; }
+
+/* ============================================================
+ * ТЕМА И ЦВЕТА
+ * ============================================================ */
+function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function colors() {
+  return {
+    ink: cssVar('--ink'), ink2: cssVar('--ink-2'), muted: cssVar('--muted'), grid: cssVar('--grid'), axis: cssVar('--axis'),
+    card: cssVar('--card'), accent: cssVar('--accent'), good: cssVar('--good'), bad: cssVar('--bad'),
+    series: [cssVar('--s1'), cssVar('--s2'), cssVar('--s3'), cssVar('--s4'), cssVar('--s5'), cssVar('--s6'), cssVar('--s7')],
+    sup: [cssVar('--sup1'), cssVar('--sup2')],
+    seqLo: cssVar('--seq-lo'), seqHi: cssVar('--seq-hi')
+  };
+}
+function hexToRgb(h) { h = h.replace('#', ''); if (h.length === 3) h = h.split('').map(function (c) { return c + c; }).join(''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; }
+function rgba(hex, a) { var c = hexToRgb(hex); return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a + ')'; }
+function mix(h1, h2, t) { var a = hexToRgb(h1), b = hexToRgb(h2); return 'rgb(' + a.map(function (v, i) { return Math.round(v + (b[i] - v) * t); }).join(',') + ')'; }
+
+// Цвет контрагента закреплён за ним навсегда: покупатели по порядку «Свода», поставщики — серые.
+function partnerColor(p) {
+  var c = colors();
+  var buyers = DATA.partners.filter(function (x) { return x.role === 'buyer'; });
+  var sups = DATA.partners.filter(function (x) { return x.role === 'supplier'; });
+  if (p.role === 'supplier') return c.sup[Math.min(sups.indexOf(p), 1)];
+  return c.series[Math.min(buyers.indexOf(p), 6)];
+}
+
+function applyTheme(t) {
+  if (t) document.documentElement.setAttribute('data-theme', t);
+  else document.documentElement.removeAttribute('data-theme');
+  try { if (t) localStorage.setItem('dash.theme', t); else localStorage.removeItem('dash.theme'); } catch (e) {}
+  if (DATA) renderAll();
+}
+function currentDark() {
+  var t = document.documentElement.getAttribute('data-theme');
+  if (t) return t === 'dark';
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+/* ============================================================
+ * ГРАФИКИ (общие настройки Chart.js)
+ * ============================================================ */
+var capLabels = {
+  id: 'capLabels',
+  afterDatasetsDraw: function (chart, args, opts) {
+    if (!opts || !opts.enabled) return;
+    var ctx = chart.ctx, c = colors();
+    ctx.save();
+    ctx.font = '500 11px ' + cssVar('--font-body');
+    ctx.fillStyle = c.ink2;
+    chart.data.datasets.forEach(function (ds, di) {
+      if (!chart.isDatasetVisible(di) || ds.noCap) return;
+      var meta = chart.getDatasetMeta(di);
+      meta.data.forEach(function (el, i) {
+        var v = ds.data[i];
+        if (v === null || v === undefined) return;
+        var txt = opts.format ? opts.format(v) : fmtNum(v, 0);
+        if (chart.options.indexAxis === 'y') {
+          ctx.textAlign = v >= 0 ? 'left' : 'right'; ctx.textBaseline = 'middle';
+          ctx.fillText(txt, el.x + (v >= 0 ? 6 : -6), el.y);
+        } else {
+          ctx.textAlign = 'center'; ctx.textBaseline = v >= 0 ? 'bottom' : 'top';
+          ctx.fillText(txt, el.x, el.y + (v >= 0 ? -4 : 4));
+        }
+      });
+    });
+    ctx.restore();
+  }
+};
+Chart.register(capLabels);
+
+function baseOptions(extra) {
+  var c = colors();
+  Chart.defaults.font.family = cssVar('--font-body');
+  Chart.defaults.font.size = 12;
+  Chart.defaults.color = c.muted;
+  var o = {
+    responsive: true, maintainAspectRatio: false, animation: { duration: 250 },
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: true, position: 'bottom', labels: { usePointStyle: true, pointStyle: 'rectRounded', boxWidth: 10, boxHeight: 10, padding: 14, color: c.ink2 } },
+      tooltip: {
+        backgroundColor: currentDark() ? '#262a33' : '#141822', titleColor: '#fff', bodyColor: '#e8eaef',
+        padding: 10, cornerRadius: 8, boxPadding: 4, usePointStyle: true,
+        callbacks: { label: function (it) { var v = it.parsed.y !== undefined && it.chart.options.indexAxis !== 'y' ? it.parsed.y : it.parsed.x; return ' ' + it.dataset.label + ': ' + (it.dataset.fmt || fmtUAH)(v); } }
+      },
+      capLabels: { enabled: false }
+    },
+    scales: {
+      x: { grid: { display: false }, border: { color: c.axis }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 12, color: c.muted } },
+      y: { grid: { color: c.grid, drawTicks: false }, border: { display: false }, ticks: { color: c.muted, callback: function (v) { return fmtCompact(v); }, maxTicksLimit: 6 } }
+    }
+  };
+  return deepMerge(o, extra || {});
+}
+function deepMerge(a, b) {
+  Object.keys(b).forEach(function (k) {
+    if (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k]) && a[k] && typeof a[k] === 'object') deepMerge(a[k], b[k]);
+    else a[k] = b[k];
+  });
+  return a;
+}
+function upsertChart(id, cfg) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  if (charts[id]) {
+    charts[id].config.type = cfg.type;
+    charts[id].data = cfg.data;
+    charts[id].options = cfg.options;
+    charts[id].update();
+  } else {
+    charts[id] = new Chart(el.getContext('2d'), cfg);
+  }
+}
+function barDs(label, data, color, extra) {
+  var c = colors();
+  return deepMerge({ label: label, data: data, backgroundColor: color, borderColor: c.card, borderWidth: 1, borderRadius: 3, maxBarThickness: 24, borderSkipped: false }, extra || {});
+}
+function lineDs(label, data, color, extra) {
+  var c = colors();
+  return deepMerge({ label: label, data: data, borderColor: color, backgroundColor: color, borderWidth: 2, pointRadius: 0, pointHoverRadius: 5, pointHoverBorderWidth: 2, pointHoverBorderColor: c.card, tension: 0.25, spanGaps: true }, extra || {});
+}
+function emptyChart(id, msg) {
+  upsertChart(id, { type: 'bar', data: { labels: [], datasets: [] }, options: baseOptions({ plugins: { legend: { display: false }, title: { display: true, text: msg || 'Нет данных за период', color: colors().muted, font: { weight: '400' } } } }) });
+}
+
+/* ============================================================
+ * ПЕРИОД И ОХВАТ
+ * ============================================================ */
+function periodRange() {
+  var ym = state.month || DATA.meta.today.slice(0, 7);
+  if (state.decade === 'all') return [ym + '-01', monthEnd(ym + '-01')];
+  return decadeRange(ym, +state.decade);
+}
+function periodLabel(r) { return dFull(r[0]) + ' — ' + dFull(r[1]); }
+
+function scopePartners() { return DATA.partners.slice(); }
+
+/* Сводные цифры по набору контрагентов за период.
+ * Потребление, объём и доходность — по дате поставки; платежи — по дате платежа. */
+function agg(partners, from, to) {
+  var r = { mwh: 0, fact: 0, profit: 0, plan: 0, planToDate: 0, factpay: 0, refund: 0, balance: 0, hasProfit: false, factDays: 0 };
+  var today = DATA.meta.today;
+  partners.forEach(function (p) {
+    p.days.forEach(function (d) {
+      if (d.kind === 0 && inRange(d.deliv, from, to)) {
+        r.mwh += d.mwh || 0;
+        if (d.fact !== null) { r.fact += d.fact; r.factDays++; }
+        if (d.profit !== null) { r.profit += d.profit; r.hasProfit = true; }
+      }
+      if (inRange(d.pay, from, to)) {
+        r.plan += d.plan || 0;
+        if (d.pay <= today) r.planToDate += d.plan || 0;
+        if (p.refund) r.refund += d.factpay || 0; else r.factpay += d.factpay || 0;
+      }
+    });
+    r.balance += p.balance || 0;
+  });
+  r.paidPct = r.planToDate > 0 ? r.factpay / r.planToDate * 100 : null;
+  return r;
+}
+function prevRange(r) { var n = daysBetween(r[0], r[1]); return [addDaysISO(r[0], -n), addDaysISO(r[0], -1)]; }
+
+/* ============================================================
+ * KPI-ПЛИТКИ
+ * ============================================================ */
+function kpi(label, value, unit, delta, deltaClass) {
+  return '<div class="kpi"><div class="l">' + label + '</div><div class="v">' + value + (unit ? '<small>' + unit + '</small>' : '') + '</div>' +
+    (delta ? '<div class="d ' + (deltaClass || '') + '">' + delta + '</div>' : '') + '</div>';
+}
+function deltaText(cur, prev, what, r) {
+  if (!prev) return { text: '', cls: '' };
+  if (r && r[1] > DATA.meta.today) return { text: 'период ещё идёт', cls: '' };
+  var pct = (cur - prev) / Math.abs(prev) * 100;
+  return { text: fmtSigned(pct, 0) + ' % к ' + what, cls: pct > 0.5 ? 'up' : (pct < -0.5 ? 'down' : '') };
+}
+
+function renderOverviewKpis(r) {
+  var bl = buyers(), sl = DATA.partners.filter(function (p) { return p.role === 'supplier'; });
+  var ab = agg(bl, r[0], r[1]), as = agg(sl, r[0], r[1]);
+  var pr = prevRange(r), apb = agg(bl, pr[0], pr[1]);
+  var dv = deltaText(ab.fact, apb.fact, 'прошлому периоду', r), dp = deltaText(ab.profit, apb.profit, 'прошлому периоду', r);
+  var h = kpi('Продано покупателям', fmtNum(ab.mwh, 0), 'МВт·ч', 'куплено у поставщиков ' + fmtNum(as.mwh, 0) + ' МВт·ч');
+  h += kpi('Потребление покупателей', fmtCompact(ab.fact), '₴', dv.text, dv.cls);
+  h += kpi('Платежи покупателей', fmtCompact(ab.factpay), '₴', 'план ' + fmtCompact(ab.plan) + ' ₴' + (ab.paidPct !== null ? ' · оплачено ' + fmtPct(ab.paidPct) + ' от плана до сегодня' : ''), ab.paidPct !== null ? (ab.paidPct >= 100 ? 'up' : (ab.paidPct < 80 ? 'down' : '')) : '');
+  h += kpi('Доходность покупателей', fmtCompact(ab.profit), '₴', dp.text, dp.cls);
+  document.getElementById('ovKpis').innerHTML = h;
+}
+
+/* Блок «Сегодня»: план на сегодня, оплачено сегодня, долг с начала месяца, статус. */
+function todayFigures(p, today) {
+  var ym = today.slice(0, 7), dec = decadeOf(today);
+  var planToday = 0, factToday = 0, consToday = null, mwhToday = 0;
+  var dueD = 0, paidD = 0, dueM = 0, paidM = 0;
+  var byDay = {};
+  p.days.forEach(function (d) {
+    if (d.pay === today) { planToday += d.plan || 0; factToday += d.factpay || 0; }
+    if (d.kind === 0 && d.deliv === today && d.fact !== null) { consToday = (consToday || 0) + d.fact; mwhToday += d.mwh || 0; }
+    var md = rowMonthDecade(d);
+    if (md.ym !== ym || d.pay > today) return;
+    dueM += d.plan || 0; paidM += d.factpay || 0;
+    if (md.dec === dec) {
+      dueD += d.plan || 0; paidD += d.factpay || 0;
+      byDay[d.pay] = (byDay[d.pay] || 0) + (d.factpay || 0) - (d.plan || 0);
+    }
+  });
+  // с какого дня декады долг держится непрерывно
+  var days = Object.keys(byDay).sort(), cum = 0, since = null;
+  days.forEach(function (d) { cum += byDay[d]; if (cum < -1) { if (!since) since = d; } else since = null; });
+  var debt = dueD - paidD, debtM = dueM - paidM;
+  var st, label, isSup = p.role === 'supplier';
+  if (p.refund) { st = ''; label = 'расчёт постфактум'; }
+  else if (debt > 1) { st = factToday > 0 && factToday >= planToday ? 'warn' : 'bad'; label = (isSup ? 'недоплата' : 'долг') + (since ? ' с ' + dShort(since) : ''); }
+  else if (planToday > 0 && factToday + 1 < planToday) { st = 'warn'; label = 'сегодня не оплачено'; }
+  else if (planToday > 0 || paidD > 0) { st = 'good'; label = debt < -1 ? 'переплата' : 'оплачено'; }
+  else { st = ''; label = 'платежа нет'; }
+  return { planToday: planToday, factToday: factToday, debt: debt, debtM: debtM, dec: dec, since: since, st: st, label: label, consToday: consToday, mwhToday: mwhToday };
+}
+
+function renderToday() {
+  var today = DATA.meta.today, tomorrow = addDaysISO(today, 1);
+  document.getElementById('todayTitle').textContent = 'Сегодня, ' + dFull(today) + ', ' + WD_NAMES[weekday(today)];
+  var rt = DATA.rdn.byDate[tomorrow], rd = DATA.rdn.byDate[today];
+  var pt = document.getElementById('priceTile');
+  if (rt) {
+    var dl = rd ? deltaText(rt.base, rd.base, 'сегодняшней') : { text: '', cls: '' };
+    pt.innerHTML = '<div class="l">Цена РДН на завтра, ' + dFull(tomorrow) + '</div><div class="v">' + fmtNum(rt.base, 2) + '<small>₴/МВт·ч без НДС</small></div>' +
+      '<div class="d ' + dl.cls + '">' + (dl.text || '') + (rd ? ' · сегодня ' + fmtNum(rd.base, 2) : '') + '</div>' +
+      (rt.min !== null ? '<div class="d">по часам от ' + fmtNum(rt.min, 0) + ' до ' + fmtNum(rt.max, 0) + '</div>' : '');
+  } else {
+    pt.innerHTML = '<div class="l">Цена РДН на завтра</div><div class="v">—</div><div class="d">ещё не опубликована, обычно после 13:00</div>' + (rd ? '<div class="d">сегодня ' + fmtNum(rd.base, 2) + ' ₴/МВт·ч</div>' : '');
+  }
+  var decN = decadeOf(today);
+  var h = '<thead><tr><th>Контрагент</th><th>Потребление сегодня</th><th>План сегодня</th><th>Оплачено сегодня</th><th>Долг, ' + decN + '-я декада</th><th>Долг, месяц</th><th class="col-st">Статус</th></tr></thead><tbody>';
+  function debtCell(v, refund) { return '<td class="' + (v > 1 ? 'neg' : (v < -1 ? 'pos' : '')) + '">' + (refund ? '—' : (Math.abs(v) <= 1 ? '0' : (v > 0 ? fmtNum(v, 0) : 'переплата ' + fmtNum(-v, 0)))) + '</td>'; }
+  var cards = '';
+  function money(v) { return v === null || v === undefined ? '—' : fmtNum(v, 0); }
+  function debtTxt(v, refund) { return refund ? '—' : (Math.abs(v) <= 1 ? '0' : (v > 0 ? fmtNum(v, 0) : 'переплата ' + fmtNum(-v, 0))); }
+  function debtCls(v) { return v > 1 ? 'neg' : (v < -1 ? 'pos' : ''); }
+  function group(title, list, totalLabel) {
+    var rows = list.map(function (p) { return { p: p, f: todayFigures(p, today) }; });
+    rows.sort(function (a, b) { if (a.p.refund !== b.p.refund) return a.p.refund ? 1 : -1; return b.f.debt - a.f.debt; });
+    var tp = 0, tf = 0, td = 0, tdm = 0, tc = 0, tm = 0;
+    h += '<tr class="grp"><td colspan="7">' + title + '</td></tr>';
+    cards += '<div class="tgroup">' + title + '</div>';
+    rows.forEach(function (x) {
+      var f = x.f; tp += f.planToday; tf += f.factToday; if (!x.p.refund) { td += f.debt; tdm += f.debtM; } tc += f.consToday || 0; tm += f.mwhToday;
+      h += '<tr><td><span class="sw" style="background:' + partnerColor(x.p) + '"></span>' + esc(x.p.name) + '<span class="st-mob"><span class="st ' + f.st + '">' + f.label + '</span></span></td>' +
+        '<td>' + (f.consToday === null ? '—' : fmtNum(f.consToday, 0) + ' <span class="pill">' + fmtNum(f.mwhToday, 0) + ' МВт·ч</span>') + '</td><td>' + (f.planToday ? fmtNum(f.planToday, 0) : '—') + '</td><td>' + (f.factToday ? fmtNum(f.factToday, 0) : '—') + '</td>' +
+        debtCell(f.debt, x.p.refund) + debtCell(f.debtM, x.p.refund) +
+        '<td class="col-st"><span class="st ' + f.st + '">' + f.label + '</span></td></tr>';
+      cards += '<div class="tcard"><div class="nm"><span><span class="sw" style="background:' + partnerColor(x.p) + '"></span>' + esc(x.p.name) + '</span><span class="st ' + f.st + '">' + f.label + '</span></div>' +
+        '<div class="kv"><div><span>Потребление</span><b>' + (f.consToday === null ? '—' : fmtNum(f.consToday, 0)) + '</b></div><div><span>МВт·ч</span><b>' + (f.consToday === null ? '—' : fmtNum(f.mwhToday, 0)) + '</b></div>' +
+        '<div><span>План сегодня</span><b>' + (f.planToday ? fmtNum(f.planToday, 0) : '—') + '</b></div><div><span>Оплачено</span><b>' + (f.factToday ? fmtNum(f.factToday, 0) : '—') + '</b></div>' +
+        '<div><span>Долг, декада</span><b class="' + debtCls(f.debt) + '">' + debtTxt(f.debt, x.p.refund) + '</b></div><div><span>Долг, месяц</span><b class="' + debtCls(f.debtM) + '">' + debtTxt(f.debtM, x.p.refund) + '</b></div></div></div>';
+    });
+    cards += '<div class="tcard sum"><div class="nm"><span>' + totalLabel + '</span></div><div class="kv"><div><span>Потребление</span><b>' + fmtNum(tc, 0) + '</b></div><div><span>МВт·ч</span><b>' + fmtNum(tm, 0) + '</b></div>' +
+      '<div><span>План сегодня</span><b>' + fmtNum(tp, 0) + '</b></div><div><span>Оплачено</span><b>' + fmtNum(tf, 0) + '</b></div>' +
+      '<div><span>Долг, декада</span><b class="' + debtCls(td) + '">' + fmtNum(td, 0) + '</b></div><div><span>Долг, месяц</span><b class="' + debtCls(tdm) + '">' + fmtNum(tdm, 0) + '</b></div></div></div>';
+    h += '<tr class="total"><td>' + totalLabel + '</td><td>' + fmtNum(tc, 0) + ' <span class="pill">' + fmtNum(tm, 0) + ' МВт·ч</span></td><td>' + fmtNum(tp, 0) + '</td><td>' + fmtNum(tf, 0) + '</td><td class="' + (td > 1 ? 'neg' : '') + '">' + fmtNum(td, 0) + '</td><td class="' + (tdm > 1 ? 'neg' : '') + '">' + fmtNum(tdm, 0) + '</td><td class="col-st"></td></tr>';
+  }
+  group('Покупатели — платят нам', buyers(), 'Итого покупатели');
+  var sups = DATA.partners.filter(function (p) { return p.role === 'supplier'; });
+  if (sups.length) group('Поставщики — платим мы', sups, 'Итого поставщики');
+  h += '</tbody>';
+  document.getElementById('tblToday').innerHTML = h;
+  document.getElementById('tcards').innerHTML = cards;
+}
+
+/* ============================================================
+ * ОБЗОР: ГРАФИКИ И ТАБЛИЦА
+ * ============================================================ */
+function dailyMap(p, key, dateKey, onlyDays) {
+  var m = {};
+  p.days.forEach(function (d) {
+    if (onlyDays && d.kind !== 0) return;
+    if (d[key] === null || d[key] === undefined) return;
+    m[d[dateKey]] = (m[d[dateKey]] || 0) + d[key];
+  });
+  return m;
+}
+
+function renderConsumeChart(r) {
+  var ps = buyers();
+  var dates = dateList(r[0], r[1]);
+  var key = state.unit === 'uah' ? 'fact' : 'mwh';
+  var ds = [], any = false;
+  ps.forEach(function (p) {
+    var m = dailyMap(p, key, 'deliv', true);
+    var data = dates.map(function (d) { return m[d] !== undefined ? m[d] : null; });
+    if (data.some(function (v) { return v !== null; })) any = true;
+    ds.push(barDs(p.name, data, partnerColor(p), { fmt: state.unit === 'uah' ? fmtUAH : function (v) { return fmtNum(v, 0) + ' МВт·ч'; } }));
+  });
+  if (!any) { emptyChart('chConsume'); return; }
+  upsertChart('chConsume', {
+    type: 'bar',
+    data: { labels: dates.map(dShort), datasets: ds },
+    options: baseOptions({
+      scales: { x: { stacked: true }, y: { stacked: true } },
+      plugins: { legend: { display: ds.length > 1 }, tooltip: { callbacks: { footer: function (items) { var s = 0; items.forEach(function (i) { s += i.parsed.y || 0; }); return 'Итого: ' + (state.unit === 'uah' ? fmtUAH(s) : fmtNum(s, 0) + ' МВт·ч'); } } } }
+    })
+  });
+}
+
+function renderPayCharts(r) {
+  var ps = buyers();
+  var dates = dateList(r[0], r[1]);
+  var c = colors(), today = DATA.meta.today;
+  var plan = dates.map(function () { return 0; }), fact = dates.map(function () { return 0; }), anyP = false, anyF = false;
+  ps.forEach(function (p) {
+    var mp = dailyMap(p, 'plan', 'pay'), mf = p.refund ? {} : dailyMap(p, 'factpay', 'pay');
+    dates.forEach(function (d, i) { if (mp[d] !== undefined) { plan[i] += mp[d]; anyP = true; } if (mf[d] !== undefined) { fact[i] += mf[d]; anyF = true; } });
+  });
+  if (!anyP && !anyF) { emptyChart('chPay'); return; }
+  upsertChart('chPay', {
+    type: 'bar',
+    data: { labels: dates.map(dShort), datasets: [
+      barDs('План', plan.map(function (v, i) { return v !== 0 ? v : (dates[i] <= today ? 0 : null); }), rgba(c.muted, 0.45)),
+      barDs('Факт', fact.map(function (v, i) { return dates[i] > today ? null : v; }), c.accent)
+    ] },
+    options: baseOptions({ plugins: { legend: { display: true } }, scales: { x: { ticks: { maxTicksLimit: 16 } } } })
+  });
+}
+
+function renderProfitChart(r) {
+  var ps = buyers().filter(function (p) { return p.hasProfit; });
+  var rows = ps.map(function (p) { return { p: p, v: agg([p], r[0], r[1]).profit }; }).filter(function (x) { return x.v !== 0; });
+  if (!rows.length) { emptyChart('chProfit'); return; }
+  rows.sort(function (a, b) { return b.v - a.v; });
+  var c = colors();
+  upsertChart('chProfit', {
+    type: 'bar',
+    data: { labels: rows.map(function (x) { return x.p.name; }), datasets: [barDs('Доходность', rows.map(function (x) { return x.v; }), rows.map(function (x) { return x.v >= 0 ? c.accent : c.bad; }), { fmt: fmtUAH })] },
+    options: baseOptions({
+      indexAxis: 'y',
+      interaction: { mode: 'nearest', axis: 'y', intersect: false },
+      layout: { padding: { right: 70 } },
+      scales: { x: { grid: { color: c.grid, drawTicks: false }, border: { display: false }, ticks: { callback: function (v) { return fmtCompact(v); }, maxTicksLimit: 5 } }, y: { grid: { display: false }, ticks: { color: c.ink2, autoSkip: false, callback: function (v) { return this.getLabelForValue(v); } } } },
+      plugins: { legend: { display: false }, capLabels: { enabled: true, format: fmtCompact } }
+    })
+  });
+}
+
+function renderPartnersTable(r) {
+  var ps = scopePartners();
+  var rows = ps.map(function (p) { var a = agg([p], r[0], r[1]); return { p: p, name: p.name, mwh: a.mwh, fact: a.fact, plan: a.plan, factpay: a.factpay, diff: a.factpay - a.plan, pct: a.paidPct, profit: p.hasProfit && p.role === 'buyer' ? a.profit : null, balance: p.balance, refund: a.refund }; });
+  var s = state.sortP;
+  rows.sort(function (a, b) {
+    var x = a[s.key], y = b[s.key];
+    if (x === null || x === undefined) return 1; if (y === null || y === undefined) return -1;
+    if (typeof x === 'string') return x.localeCompare(y, 'ru') * s.dir;
+    return (x - y) * s.dir;
+  });
+  var cols = [['name', 'Контрагент'], ['mwh', 'МВт·ч'], ['fact', 'Потребление'], ['plan', 'План'], ['factpay', 'Факт платежей'], ['diff', 'Факт − план'], ['pct', '% оплаты'], ['profit', 'Доходность'], ['balance', 'Баланс']];
+  var h = '<thead><tr>' + cols.map(function (c) { return '<th data-key="' + c[0] + '" class="' + (s.key === c[0] ? 'sorted' : '') + '">' + c[1] + (s.key === c[0] ? (s.dir > 0 ? ' ↑' : ' ↓') : '') + '</th>'; }).join('') + '</tr></thead><tbody>';
+  var tot = { mwh: 0, fact: 0, plan: 0, factpay: 0, profit: 0, balance: 0 };
+  rows.forEach(function (x) {
+    tot.mwh += x.mwh; tot.fact += x.fact; tot.plan += x.plan; tot.factpay += x.factpay; tot.profit += x.profit || 0; tot.balance += x.balance || 0;
+    h += '<tr><td><span class="sw" style="background:' + partnerColor(x.p) + '"></span>' + esc(x.name) + (x.p.role === 'supplier' ? '<span class="pill">поставщик</span>' : '') + (x.p.refund ? '<span class="pill">возврат</span>' : '') + '</td>' +
+      '<td>' + fmtNum(x.mwh, 0) + '</td><td>' + fmtNum(x.fact, 0) + '</td><td>' + fmtNum(x.plan, 0) + '</td><td>' + fmtNum(x.factpay, 0) + (x.refund ? ' <span class="pill">возврат ' + fmtNum(x.refund, 0) + '</span>' : '') + '</td>' +
+      '<td class="' + (x.diff < 0 ? 'neg' : (x.diff > 0 ? 'pos' : '')) + '">' + fmtSigned(x.diff, 0) + '</td><td>' + fmtPct(x.pct) + '</td>' +
+      '<td class="' + (x.profit < 0 ? 'neg' : '') + '">' + (x.profit === null ? '—' : fmtNum(x.profit, 0)) + '</td><td class="' + (x.balance < 0 ? 'neg' : '') + '">' + fmtNum(x.balance, 0) + '</td></tr>';
+  });
+  h += '<tr class="total"><td>Итого</td><td>' + fmtNum(tot.mwh, 0) + '</td><td>' + fmtNum(tot.fact, 0) + '</td><td>' + fmtNum(tot.plan, 0) + '</td><td>' + fmtNum(tot.factpay, 0) + '</td><td>' + fmtSigned(tot.factpay - tot.plan, 0) + '</td><td>' + fmtPct(tot.plan ? tot.factpay / tot.plan * 100 : null) + '</td><td>' + fmtNum(tot.profit, 0) + '</td><td>' + fmtNum(tot.balance, 0) + '</td></tr></tbody>';
+  var t = document.getElementById('tblPartners');
+  t.innerHTML = h;
+  t.querySelectorAll('th').forEach(function (th) {
+    th.addEventListener('click', function () {
+      var k = th.getAttribute('data-key');
+      if (state.sortP.key === k) state.sortP.dir *= -1; else state.sortP = { key: k, dir: k === 'name' ? 1 : -1 };
+      renderPartnersTable(periodRange());
+    });
+  });
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]; }); }
+
+function renderOverview() {
+  var r = periodRange();
+  document.getElementById('periodText').textContent = periodLabel(r);
+  renderToday();
+  renderOverviewKpis(r);
+  renderConsumeChart(r);
+  renderPayCharts(r);
+  renderPartnersTable(r);
+  renderProfitChart(r);
+}
+
+/* ============================================================
+ * ПОКУПАТЕЛИ: по дням, план и факт, по декадам
+ * ============================================================ */
+function buyers() { return DATA.partners.filter(function (p) { return p.role === 'buyer'; }); }
+function currentBuyer() {
+  var list = buyers();
+  return list.filter(function (p) { return p.id === state.buyer; })[0] || list[0] || null;
+}
+function monthsAvailable() {
+  var set = {};
+  buyers().forEach(function (p) { p.days.forEach(function (d) { set[d.deliv.slice(0, 7)] = true; }); });
+  var t = DATA.meta.today.slice(0, 7); set[t] = true;
+  return Object.keys(set).sort().reverse();
+}
+function monthLabel(ym) { return MONTHS[+ym.slice(5, 7) - 1] + ' ' + ym.slice(0, 4); }
+function decadeOf(iso) { var d = +iso.slice(8, 10); return d <= 10 ? 1 : (d <= 20 ? 2 : 3); }
+/* Аванс декады в таблице датирован за 3 дня до её начала — относим его к оплачиваемой декаде. */
+function rowMonthDecade(d) {
+  var key = d.kind === 1 ? addDaysISO(d.deliv, 3) : d.deliv;
+  return { ym: key.slice(0, 7), dec: decadeOf(key) };
+}
+function decadeRange(ym, dec) {
+  if (dec === 1) return [ym + '-01', ym + '-10'];
+  if (dec === 2) return [ym + '-11', ym + '-20'];
+  return [ym + '-21', monthEnd(ym + '-01')];
+}
+
+var decadeLines = {
+  id: 'decadeLines',
+  afterDraw: function (chart, args, opts) {
+    if (!opts || !opts.idx) return;
+    var c = colors(), x = chart.scales.x, area = chart.chartArea, ctx = chart.ctx;
+    ctx.save();
+    ctx.strokeStyle = c.axis; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+    ctx.fillStyle = c.muted; ctx.font = '500 11px ' + cssVar('--font-body'); ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    var starts = [0].concat(opts.idx);
+    starts.forEach(function (i, n) {
+      var px = i === 0 ? area.left : (x.getPixelForValue(i - 1) + x.getPixelForValue(i)) / 2;
+      if (i !== 0) { ctx.beginPath(); ctx.moveTo(px, area.top); ctx.lineTo(px, area.bottom); ctx.stroke(); }
+      ctx.fillText((n + 1) + '-я декада', px + 6, area.top + 2);
+    });
+    ctx.restore();
+  }
+};
+Chart.register(decadeLines);
+
+function renderBuyer() {
+  var p = currentBuyer();
+  var ym = state.month;
+  if (!p || !ym) { document.getElementById('bKpis').innerHTML = kpi('Покупатели', '—', '', 'в таблице нет листов покупателей'); return; }
+  var c = colors(), col = partnerColor(p), today = DATA.meta.today;
+  var mr = [ym + '-01', monthEnd(ym + '-01')];
+
+  // строки месяца по декадам
+  var rows = p.days.filter(function (d) { return rowMonthDecade(d).ym === ym; });
+  var decs = { 1: [], 2: [], 3: [] };
+  rows.forEach(function (d) { decs[rowMonthDecade(d).dec].push(d); });
+  [1, 2, 3].forEach(function (k) { decs[k].sort(function (a, b) { return (a.kind !== b.kind) ? b.kind - a.kind : (a.deliv < b.deliv ? -1 : 1); }); });
+
+  function sum(arr, key, onlyDays) { var s = 0, any = false; arr.forEach(function (d) { if (onlyDays && d.kind !== 0) return; if (d[key] !== null && d[key] !== undefined) { s += d[key]; any = true; } }); return any ? s : null; }
+  function tot(arr) {
+    var planDue = 0; arr.forEach(function (d) { if (d.pay <= today) planDue += d.plan || 0; });
+    return { plan: sum(arr, 'plan') || 0, fact: sum(arr, 'factpay') || 0, planDue: planDue, mwh: sum(arr, 'mwh', true) || 0, cons: sum(arr, 'fact', true) || 0, profit: sum(arr, 'profit', true), sumVat: sum(arr, 'sum') || 0 };
+  }
+  var tM = tot(rows), tD = { 1: tot(decs[1]), 2: tot(decs[2]), 3: tot(decs[3]) };
+  var diff = tM.fact - tM.planDue;
+  var pct = tM.planDue > 0 ? tM.fact / tM.planDue * 100 : null;
+  var factWord = p.refund ? 'Возвраты' : 'Оплачено';
+
+  var h = kpi('План платежей за ' + monthLabel(ym), fmtCompact(tM.plan), '₴', 'к сегодняшнему дню ' + fmtCompact(tM.planDue) + ' ₴');
+  h += kpi(factWord, fmtCompact(tM.fact), '₴', pct !== null ? fmtPct(pct) + ' от плана до сегодня' : 'платежей ещё не было', pct !== null ? (pct >= 100 ? 'up' : (pct < 80 ? 'down' : '')) : '');
+  h += kpi(diff < 0 ? 'Недоплата' : 'Переплата', fmtCompact(Math.abs(diff)), '₴', 'факт − план к сегодняшнему дню', diff < 0 ? 'down' : (diff > 0 ? 'up' : ''));
+  h += kpi('Потребление', fmtCompact(tM.cons), '₴', fmtNum(tM.mwh, 0) + ' МВт·ч' + (p.mwPerDay ? ' · ' + p.mwPerDay + ' МВт в сутки' : ''));
+  h += kpi('Доходность', p.hasProfit && tM.profit !== null ? fmtCompact(tM.profit) : '—', p.hasProfit ? '₴' : '', p.hasProfit ? 'за месяц по дням поставки' : 'колонки нет на листе');
+  h += kpi('Баланс', fmtCompact(p.balance), '₴', p.balanceDate ? 'на ' + dFull(p.balanceDate) : '', p.balance < 0 ? 'down' : '');
+  document.getElementById('bKpis').innerHTML = h;
+  document.getElementById('bPayTitle').textContent = p.name + ': платежи по дням, ' + monthLabel(ym);
+
+  // график по дням поставки
+  var dates = dateList(mr[0], mr[1]);
+  var mp = {}, mf = {};
+  rows.forEach(function (d) { if (d.plan !== null) mp[d.deliv] = (mp[d.deliv] || 0) + d.plan; if (d.factpay !== null) mf[d.deliv] = (mf[d.deliv] || 0) + d.factpay; });
+  var plan = dates.map(function (d) { return mp[d] !== undefined ? mp[d] : null; });
+  var fact = dates.map(function (d) { return mf[d] !== undefined ? mf[d] : null; });
+  document.getElementById('bConsTitle').textContent = p.name + ': фактическое потребление по дням поставки';
+  if (!rows.length) { ['chBCons', 'chBPay', 'chBDecades', 'chBDiff'].forEach(function (id) { emptyChart(id, 'Нет строк за ' + monthLabel(ym)); }); }
+  else {
+    var mcons = {};
+    rows.forEach(function (d) { if (d.kind !== 0) return; var v = state.unit === 'uah' ? d.fact : d.mwh; if (v !== null) mcons[d.deliv] = (mcons[d.deliv] || 0) + v; });
+    var cons = dates.map(function (d) { return mcons[d] !== undefined ? mcons[d] : null; });
+    var consFmt = state.unit === 'uah' ? fmtUAH : function (v) { return fmtNum(v, 0) + ' МВт·ч'; };
+    upsertChart('chBCons', { type: 'bar', data: { labels: dates.map(function (d) { return d.slice(8, 10); }), datasets: [barDs(state.unit === 'uah' ? 'Потребление, ₴' : 'Потребление, МВт·ч', cons, col, { fmt: consFmt })] },
+      options: baseOptions({ layout: { padding: { top: 18 } }, plugins: { legend: { display: false }, decadeLines: { idx: [10, 20] }, tooltip: { callbacks: { title: function (it) { return dFull(dates[it[0].dataIndex]) + ' · ' + WD_NAMES[weekday(dates[it[0].dataIndex])]; } } } }, scales: { x: { ticks: { maxTicksLimit: 16 } }, y: { ticks: { callback: function (v) { return state.unit === 'uah' ? fmtCompact(v) : fmtNum(v, 0); } } } } }) });
+    upsertChart('chBPay', { type: 'bar', data: { labels: dates.map(function (d) { return d.slice(8, 10); }), datasets: [barDs('План', plan, rgba(c.muted, 0.45)), barDs(p.refund ? 'Возврат' : 'Факт', fact, col)] },
+      options: baseOptions({ layout: { padding: { top: 18 } }, plugins: { decadeLines: { idx: [10, 20] }, tooltip: { callbacks: { title: function (it) { return dFull(dates[it[0].dataIndex]) + ' · ' + WD_NAMES[weekday(dates[it[0].dataIndex])]; } } } }, scales: { x: { ticks: { maxTicksLimit: 16 } } } }) });
+    upsertChart('chBDecades', { type: 'bar', data: { labels: ['1-я декада', '2-я декада', '3-я декада'], datasets: [
+        barDs('План', [tD[1].plan, tD[2].plan, tD[3].plan], rgba(c.muted, 0.45), { maxBarThickness: 40 }),
+        barDs(p.refund ? 'Возврат' : 'Факт', [tD[1].fact, tD[2].fact, tD[3].fact], col, { maxBarThickness: 40 })] },
+      options: baseOptions({ layout: { padding: { top: 16 } }, plugins: { capLabels: { enabled: true, format: fmtCompact } } }) });
+    var cum = 0, cumArr = [];
+    dates.forEach(function (d) { var pl = mp[d] || 0, fc = mf[d] || 0; if (d <= today) { cum += fc - pl; cumArr.push(Math.round(cum)); } else cumArr.push(null); });
+    upsertChart('chBDiff', { type: 'line', data: { labels: dates.map(function (d) { return d.slice(8, 10); }), datasets: [lineDs('Факт − план накопительно', cumArr, col, { fill: { target: 'origin', above: rgba(c.good, 0.12), below: rgba(c.bad, 0.12) } })] },
+      options: baseOptions({ plugins: { legend: { display: false }, decadeLines: { idx: [10, 20] } }, layout: { padding: { top: 18 } }, scales: { x: { ticks: { maxTicksLimit: 16 } } } }) });
+  }
+
+  // таблица по декадам
+  var cols = ['Поставка', 'Платёж', 'МВт', 'Цена', 'Потребление', 'Сумма с НДС', 'План', p.refund ? 'Возврат' : 'Факт', 'Факт − план', 'Баланс'];
+  if (p.hasProfit) cols.push('Доходность');
+  var th = '<thead><tr>' + cols.map(function (x) { return '<th>' + x + '</th>'; }).join('') + '</tr></thead><tbody>';
+  var body = '';
+  [1, 2, 3].forEach(function (k) {
+    var dr = decadeRange(ym, k);
+    body += '<tr class="grp"><td colspan="' + cols.length + '">' + k + '-я декада · ' + dShort(dr[0]) + ' — ' + dShort(dr[1]) + (decs[k].length ? '' : ' · строк нет') + '</td></tr>';
+    decs[k].forEach(function (d) {
+      var cls = d.pay > today ? 'future' : '';
+      var tags = (d.kind === 1 ? '<span class="pill">аванс</span>' : '') + (d.pay > today ? '<span class="pill">план</span>' : '');
+      var priceV = d.kind === 1 ? (d.nkre !== null ? d.nkre : d.price) : (d.fix !== null ? d.fix : d.price);
+      var df = (d.plan !== null || d.factpay !== null) && d.pay <= today ? (d.factpay || 0) - (d.plan || 0) : null;
+      body += '<tr class="' + cls + '"><td>' + dFull(d.deliv) + tags + '</td><td>' + dFull(d.pay) + '</td><td>' + (d.mw === null ? '—' : fmtNum(d.mw, 0)) + '</td><td>' + (priceV === null ? '—' : fmtNum(priceV, 2)) + '</td><td>' + (d.kind === 0 ? fmtNum(d.fact, 0) : '') + '</td><td>' + fmtNum(d.sum, 0) + '</td><td>' + fmtNum(d.plan, 0) + '</td><td>' + fmtNum(d.factpay, 0) + '</td><td class="' + (df < 0 ? 'neg' : (df > 0 ? 'pos' : '')) + '">' + (df === null ? '—' : fmtSigned(df, 0)) + '</td><td class="' + (d.bal < 0 ? 'neg' : '') + '">' + fmtNum(d.bal, 0) + '</td>' + (p.hasProfit ? '<td class="' + (d.profit < 0 ? 'neg' : '') + '">' + fmtNum(d.profit, 0) + '</td>' : '') + '</tr>';
+    });
+    if (decs[k].length) {
+      var t = tD[k], dd = t.fact - t.planDue;
+      body += '<tr class="sub"><td>Итого ' + k + '-я декада</td><td></td><td>' + fmtNum(t.mwh, 0) + ' МВт·ч</td><td></td><td>' + fmtNum(t.cons, 0) + '</td><td>' + fmtNum(t.sumVat, 0) + '</td><td>' + fmtNum(t.plan, 0) + '</td><td>' + fmtNum(t.fact, 0) + '</td><td class="' + (dd < 0 ? 'neg' : (dd > 0 ? 'pos' : '')) + '">' + fmtSigned(dd, 0) + '</td><td></td>' + (p.hasProfit ? '<td>' + (t.profit === null ? '—' : fmtNum(t.profit, 0)) + '</td>' : '') + '</tr>';
+    }
+  });
+  body += '<tr class="total"><td>Итого ' + monthLabel(ym) + '</td><td></td><td>' + fmtNum(tM.mwh, 0) + ' МВт·ч</td><td></td><td>' + fmtNum(tM.cons, 0) + '</td><td>' + fmtNum(tM.sumVat, 0) + '</td><td>' + fmtNum(tM.plan, 0) + '</td><td>' + fmtNum(tM.fact, 0) + '</td><td class="' + (diff < 0 ? 'neg' : (diff > 0 ? 'pos' : '')) + '">' + fmtSigned(diff, 0) + '</td><td></td>' + (p.hasProfit ? '<td>' + (tM.profit === null ? '—' : fmtNum(tM.profit, 0)) + '</td>' : '') + '</tr>';
+  document.getElementById('bTableHint').textContent = p.name + ' · ' + monthLabel(ym) + ' · «Потребление» — фактическое за сутки поставки, грн · «Факт − план» только по дням до сегодня';
+  document.getElementById('tblBuyer').innerHTML = th + body + '</tbody>';
+}
+
+function renderChips() {
+  var mc = document.getElementById('monthChips');
+  var ms = monthsAvailable();
+  if (mc.getAttribute('data-months') !== ms.join(',')) {
+    mc.setAttribute('data-months', ms.join(','));
+    mc.innerHTML = ms.map(function (m) { return '<button class="chip" type="button" data-month="' + m + '">' + monthLabel(m) + '</button>'; }).join('');
+    mc.querySelectorAll('.chip').forEach(function (b) { b.addEventListener('click', function () { state.month = b.getAttribute('data-month'); save(); renderAll(); }); });
+  }
+  mc.querySelectorAll('.chip').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-month') === state.month)); });
+  document.querySelectorAll('#decadeChips .chip').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-dec') === String(state.decade))); });
+  var bc = document.getElementById('buyerChips');
+  if (!bc.getAttribute('data-ready')) {
+    bc.setAttribute('data-ready', '1');
+    bc.innerHTML = buyers().map(function (p) { return '<button class="chip" type="button" data-buyer="' + p.id + '"><span class="sw" style="background:' + partnerColor(p) + '"></span>' + esc(p.name) + '</button>'; }).join('');
+    bc.querySelectorAll('.chip').forEach(function (b) { b.addEventListener('click', function () { state.buyer = b.getAttribute('data-buyer'); save(); renderAll(); }); });
+  }
+  bc.querySelectorAll('.chip').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-buyer') === state.buyer)); });
+}
+
+/* ============================================================
+ * ЦЕНЫ РДН
+ * ============================================================ */
+function rdnRange() {
+  var days = DATA.rdn.days;
+  if (!days.length) return null;
+  var last = days[days.length - 1].date, t = DATA.meta.today;
+  var end = last > t ? last : t;
+  switch (state.rp) {
+    case '7': return [addDaysISO(end, -6), end];
+    case '30': return [addDaysISO(end, -29), end];
+    case '90': return [addDaysISO(end, -89), end];
+    case 'month': return [t.slice(0, 7) + '-01', monthEnd(t) > end ? end : monthEnd(t)];
+    case 'ytd': return [t.slice(0, 4) + '-01-01', end];
+    case 'custom': if (state.rdnFrom && state.rdnTo && state.rdnFrom <= state.rdnTo) return [state.rdnFrom, state.rdnTo];
+    default: return [days[0].date, end];
+  }
+}
+function rdnSlice(r) { return DATA.rdn.days.filter(function (d) { return inRange(d.date, r[0], r[1]); }); }
+function mean(a) { return a.length ? a.reduce(function (s, v) { return s + v; }, 0) / a.length : null; }
+function median(a) { if (!a.length) return null; var b = a.slice().sort(function (x, y) { return x - y; }); var m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; }
+function quantile(a, q) { if (!a.length) return null; var b = a.slice().sort(function (x, y) { return x - y; }); var pos = (b.length - 1) * q, lo = Math.floor(pos), hi = Math.ceil(pos); return b[lo] + (b[hi] - b[lo]) * (pos - lo); }
+function wdOf(iso) { if (document.getElementById('holAsSun').checked && DATA.rdn.holidaySet[iso]) return 0; return weekday(iso); }
+
+function renderRdnKpis(r, rows) {
+  var vals = rows.map(function (d) { return d.base; });
+  var last = rows[rows.length - 1];
+  var mn = rows.reduce(function (m, d) { return !m || d.base < m.base ? d : m; }, null);
+  var mx = rows.reduce(function (m, d) { return !m || d.base > m.base ? d : m; }, null);
+  var pr = prevRange(r), prev = rdnSlice(pr).map(function (d) { return d.base; });
+  var dv = deltaText(mean(vals), mean(prev), 'прошлым ' + daysBetween(r[0], r[1]) + ' дням');
+  var prevDay = rows.length > 1 ? rows[rows.length - 2] : null;
+  var dl = prevDay && last ? deltaText(last.base, prevDay.base, 'предыдущему дню') : { text: '', cls: '' };
+  var h = kpi(last && last.date > DATA.meta.today ? 'Завтра, ' + dFull(last.date) : 'Последняя, ' + (last ? dFull(last.date) : ''), fmtNum(last ? last.base : null, 0), '₴/МВт·ч', dl.text, dl.cls);
+  h += kpi('Средняя за период', fmtNum(mean(vals), 0), '₴/МВт·ч', dv.text, dv.cls);
+  h += kpi('Минимум', fmtNum(mn ? mn.base : null, 0), '₴/МВт·ч', mn ? dFull(mn.date) + ' · ' + WD_NAMES[weekday(mn.date)] : '');
+  h += kpi('Максимум', fmtNum(mx ? mx.base : null, 0), '₴/МВт·ч', mx ? dFull(mx.date) + ' · ' + WD_NAMES[weekday(mx.date)] : '');
+  document.getElementById('rdnKpis').innerHTML = h;
+}
+
+function renderRdnMain(r, rows) {
+  var c = colors();
+  var labels = rows.map(function (d) { return dShort(d.date); });
+  var ds = [];
+  var today = DATA.meta.today;
+  ds.push(lineDs('Base (среднее суток)', rows.map(function (d) { return d.base; }), c.accent, {
+    fmt: fmtPrice, fill: true, backgroundColor: rgba(c.accent, 0.08),
+    pointRadius: rows.map(function (d) { return d.date > today ? 4 : 0; }), pointBackgroundColor: c.card, pointBorderColor: c.accent, pointBorderWidth: 2,
+    segment: { borderDash: function (ctx) { return rows[ctx.p1DataIndex] && rows[ctx.p1DataIndex].date > today ? [4, 4] : undefined; } }
+  }));
+  var avg = mean(rows.map(function (d) { return d.base; }));
+  ds.push(lineDs('Средняя за период', rows.map(function () { return avg; }), c.muted, { borderDash: [2, 4], borderWidth: 1, pointHoverRadius: 0, fmt: fmtPrice }));
+  upsertChart('chRdn', {
+    type: 'line',
+    data: { labels: labels, datasets: ds },
+    options: baseOptions({
+      scales: { y: { ticks: { callback: function (v) { return fmtNum(v, 0); } } } },
+      plugins: { legend: { labels: { filter: function (it) { return it.text.indexOf('по часам') === -1; }, pointStyle: 'line' } } }
+    })
+  });
+}
+function fmtPrice(v) { return fmtNum(v, 2) + ' ₴/МВт·ч'; }
+
+function renderWeekday(rows) {
+  var c = colors();
+  var groups = {}; rows.forEach(function (d) { var w = wdOf(d.date); (groups[w] = groups[w] || []).push(d.base); });
+  var data = WD_ORDER.map(function (w) { return groups[w] ? Math.round(mean(groups[w])) : null; });
+  if (data.every(function (v) { return v === null; })) { emptyChart('chWeekday'); return; }
+  var overall = mean(rows.map(function (d) { return d.base; }));
+  upsertChart('chWeekday', {
+    type: 'bar',
+    data: { labels: WD_ORDER.map(function (w) { return WD_NAMES[w]; }), datasets: [barDs('Средняя Base', data, WD_ORDER.map(function (w) { return w === 0 || w === 6 ? rgba(c.accent, 0.5) : c.accent; }), { fmt: fmtPrice }),
+      lineDs('Средняя за период', WD_ORDER.map(function () { return overall; }), c.muted, { type: 'line', borderDash: [2, 4], borderWidth: 1, pointHoverRadius: 0, fmt: fmtPrice, noCap: true })] },
+    options: baseOptions({ plugins: { legend: { display: false }, capLabels: { enabled: true, format: function (v) { return fmtNum(v, 0); } } }, scales: { y: { ticks: { callback: function (v) { return fmtNum(v, 0); } } }, x: { ticks: { maxTicksLimit: 7 } } }, layout: { padding: { top: 16 } } })
+  });
+}
+
+function renderMonths() {
+  var c = colors();
+  var g = {};
+  DATA.rdn.days.forEach(function (d) { var k = d.date.slice(0, 7); (g[k] = g[k] || []).push(d.base); });
+  var keys = Object.keys(g).sort();
+  if (!keys.length) { emptyChart('chMonths'); return; }
+  var cur = DATA.meta.today.slice(0, 7);
+  upsertChart('chMonths', {
+    type: 'bar',
+    data: { labels: keys.map(function (k) { return MONTHS_SHORT[+k.slice(5, 7) - 1] + ' ' + k.slice(2, 4); }), datasets: [
+      barDs('Средняя за месяц', keys.map(function (k) { return Math.round(mean(g[k])); }), keys.map(function (k) { return k === cur ? c.accent : rgba(c.accent, 0.55); }), { fmt: fmtPrice })
+    ] },
+    options: baseOptions({ plugins: { legend: { display: false }, capLabels: { enabled: true, format: function (v) { return fmtNum(v, 0); } }, tooltip: { callbacks: { afterLabel: function (it) { var k = keys[it.dataIndex]; return 'мин ' + fmtNum(Math.min.apply(null, g[k]), 0) + ' · макс ' + fmtNum(Math.max.apply(null, g[k]), 0) + ' · дней ' + g[k].length; } } } },
+      scales: { y: { ticks: { callback: function (v) { return fmtNum(v, 0); } } }, x: { ticks: { maxTicksLimit: 12 } } }, layout: { padding: { top: 16 } } })
+  });
+}
+
+function renderHourly(rows) {
+  var c = colors();
+  var withH = rows.filter(function (d) { return d.hours; });
+  if (!withH.length) { emptyChart('chHourly', 'Почасовые цены ещё не загружены'); return; }
+  var avg = [], lo = [], hi = [];
+  for (var h = 0; h < 24; h++) {
+    var col = withH.map(function (d) { return d.hours[h]; }).filter(function (v) { return v !== null; });
+    avg.push(Math.round(mean(col))); lo.push(Math.round(quantile(col, 0.1))); hi.push(Math.round(quantile(col, 0.9)));
+  }
+  var labels = []; for (var i = 0; i < 24; i++) labels.push(pad(i) + ':00');
+  upsertChart('chHourly', {
+    type: 'line',
+    data: { labels: labels, datasets: [
+      lineDs('10 %', lo, 'transparent', { borderWidth: 0, pointHoverRadius: 0, fmt: fmtPrice }),
+      lineDs('90 %', hi, 'transparent', { borderWidth: 0, pointHoverRadius: 0, fill: '-1', backgroundColor: rgba(c.accent, 0.12), fmt: fmtPrice }),
+      lineDs('Средняя по часу', avg, c.accent, { fmt: fmtPrice })
+    ] },
+    options: baseOptions({ plugins: { legend: { labels: { filter: function (it) { return it.text.indexOf('%') === -1; }, pointStyle: 'line' } } }, scales: { y: { ticks: { callback: function (v) { return fmtNum(v, 0); } } }, x: { ticks: { maxTicksLimit: 8 } } } })
+  });
+}
+
+function renderHeat(rows) {
+  var c = colors();
+  var withH = rows.filter(function (d) { return d.hours; });
+  var el = document.getElementById('heat');
+  if (!withH.length) { el.innerHTML = '<div class="empty" style="grid-column:1/-1">Почасовые цены ещё не загружены</div>'; document.getElementById('heatHint').textContent = ''; return; }
+  var show = withH.slice(-42);
+  document.getElementById('heatHint').textContent = (withH.length > 42 ? 'последние 42 дня периода' : show.length + ' дн.') + ' · цена без НДС, ₴/МВт·ч';
+  var all = []; show.forEach(function (d) { all = all.concat(d.hours.filter(function (v) { return v !== null; })); });
+  var mn = Math.min.apply(null, all), mx = Math.max.apply(null, all);
+  var h = '<div></div>';
+  for (var i = 0; i < 24; i++) h += '<div class="hd">' + (i % 3 === 0 ? pad(i) : '') + '</div>';
+  show.forEach(function (d) {
+    h += '<div class="rl">' + dShort(d.date) + ' ' + WD_NAMES[weekday(d.date)] + '</div>';
+    d.hours.forEach(function (v, hr) {
+      if (v === null) { h += '<div class="c" style="background:var(--grid)" data-tip="' + dFull(d.date) + ', ' + pad(hr) + ':00 — часа нет (перевод часов)"></div>'; return; }
+      var t = mx > mn ? (v - mn) / (mx - mn) : 0.5;
+      h += '<div class="c" style="background:' + mix(c.seqLo, c.seqHi, t) + '" data-tip="' + dFull(d.date) + ', ' + pad(hr) + ':00–' + pad(hr + 1) + ':00 — ' + fmtNum(v, 2) + ' ₴/МВт·ч"></div>';
+    });
+  });
+  el.innerHTML = h;
+  document.getElementById('heatMin').textContent = fmtNum(mn, 0);
+  document.getElementById('heatMax').textContent = fmtNum(mx, 0);
+  var tip = document.getElementById('heatTip');
+  el.onmouseover = el.onclick = function (ev) { var t = ev.target.getAttribute && ev.target.getAttribute('data-tip'); if (t) tip.textContent = t; };
+}
+
+/* Ориентир: коэффициенты дня недели за 28 дней, уровень — по последним 7 дням. */
+function forecast7(days) {
+  var known = days.filter(function (d) { return d.base !== null; });
+  if (known.length < 14) return null;
+  var last28 = known.slice(-28);
+  var all = mean(last28.map(function (d) { return d.base; }));
+  var byWd = {}; last28.forEach(function (d) { var w = wdOf(d.date); (byWd[w] = byWd[w] || []).push(d.base); });
+  var coef = {}; for (var w = 0; w < 7; w++) coef[w] = byWd[w] && byWd[w].length ? mean(byWd[w]) / all : 1;
+  var last7 = known.slice(-7);
+  var level = mean(last7.map(function (d) { return d.base / coef[wdOf(d.date)]; }));
+  var lastDate = known[known.length - 1].date;
+  var out = [];
+  for (var i = 1; i <= 7; i++) { var dt = addDaysISO(lastDate, i); out.push({ date: dt, ref: level * coef[wdOf(dt)] }); }
+  return { lastDate: lastDate, points: out };
+}
+
+function renderForecast() {
+  var c = colors();
+  var fc = forecast7(DATA.rdn.days);
+  if (!fc) { emptyChart('chForecast', 'Для ориентира нужно хотя бы 14 дней истории'); return; }
+  var hist = DATA.rdn.days.filter(function (d) { return d.date <= fc.lastDate; }).slice(-14);
+  var labels = hist.map(function (d) { return dShort(d.date); }).concat(fc.points.map(function (p) { return dShort(p.date); }));
+  var actual = hist.map(function (d) { return d.base; }).concat(fc.points.map(function () { return null; }));
+  var ref = hist.map(function (d, i) { return i === hist.length - 1 ? d.base : null; }).concat(fc.points.map(function (p) { return Math.round(p.ref); }));
+  var lo = ref.map(function (v, i) { return v === null || i < hist.length ? null : Math.round(v * 0.86); });
+  var hi = ref.map(function (v, i) { return v === null || i < hist.length ? null : Math.round(v * 1.14); });
+  upsertChart('chForecast', {
+    type: 'line',
+    data: { labels: labels, datasets: [
+      lineDs('−14 %', lo, 'transparent', { borderWidth: 0, pointHoverRadius: 0, fmt: fmtPrice }),
+      lineDs('+14 %', hi, 'transparent', { borderWidth: 0, pointHoverRadius: 0, fill: '-1', backgroundColor: rgba(c.muted, 0.15), fmt: fmtPrice }),
+      lineDs('Факт', actual, c.accent, { fmt: fmtPrice }),
+      lineDs('Ориентир', ref, c.ink2, { borderDash: [6, 4], pointRadius: 3, pointBackgroundColor: c.card, pointBorderColor: c.ink2, fmt: fmtPrice })
+    ] },
+    options: baseOptions({ plugins: { legend: { labels: { filter: function (it) { return it.text.indexOf('%') === -1; }, pointStyle: 'line' } } }, scales: { y: { ticks: { callback: function (v) { return fmtNum(v, 0); } } } } })
+  });
+}
+
+function renderRdnTable(rows) {
+  var h = '<thead><tr><th>Дата</th><th>День</th><th>Base</th><th>Мин по часам</th><th>Макс по часам</th><th>К пред. дню</th></tr></thead><tbody>';
+  var prev = null;
+  rows.forEach(function (d) {
+    var dlt = prev !== null ? (d.base - prev) / prev * 100 : null;
+    h += '<tr><td>' + dFull(d.date) + '</td><td>' + WD_NAMES[weekday(d.date)] + (DATA.rdn.holidaySet[d.date] ? '<span class="pill">праздник</span>' : '') + '</td><td>' + fmtNum(d.base, 2) + '</td><td>' + fmtNum(d.min, 0) + '</td><td>' + fmtNum(d.max, 0) + '</td><td class="' + (dlt > 0 ? 'pos' : (dlt < 0 ? 'neg' : '')) + '">' + (dlt === null ? '—' : fmtSigned(dlt, 1) + ' %') + '</td></tr>';
+    prev = d.base;
+  });
+  document.getElementById('tblRdn').innerHTML = h + '</tbody>';
+}
+
+function renderRdn() {
+  var r = rdnRange();
+  if (!r) { document.getElementById('rdnKpis').innerHTML = kpi('Цены РДН', '—', '', 'данных пока нет'); return; }
+  var rows = rdnSlice(r);
+  document.getElementById('rdnPeriodText').textContent = periodLabel(r) + ' · ' + rows.length + ' дн.';
+  if (!rows.length) { document.getElementById('rdnKpis').innerHTML = kpi('Цены РДН', '—', '', 'нет цен за выбранный период'); ['chRdn', 'chWeekday', 'chHourly'].forEach(function (id) { emptyChart(id); }); renderMonths(); renderForecast(); document.getElementById('heat').innerHTML = ''; document.getElementById('tblRdn').innerHTML = ''; return; }
+  renderRdnKpis(r, rows);
+  renderRdnMain(r, rows);
+  renderForecast();
+  renderWeekday(rows);
+  renderMonths();
+  renderHourly(rows);
+  renderHeat(rows);
+  renderRdnTable(rows);
+}
+
+/* ============================================================
+ * ОБЩИЙ РЕНДЕР И УПРАВЛЕНИЕ
+ * ============================================================ */
+function renderStamp() {
+  var m = DATA.meta;
+  var gen = new Date(m.generated);
+  var ageH = (Date.now() - gen.getTime()) / 3600000;
+  var txt = 'Данные из таблицы на ' + pad(gen.getDate()) + '.' + pad(gen.getMonth() + 1) + ' ' + pad(gen.getHours()) + ':' + pad(gen.getMinutes());
+  var lastRdn = DATA.rdn.days.length ? DATA.rdn.days[DATA.rdn.days.length - 1].date : null;
+  if (lastRdn) txt += ' · цена РДН есть по ' + dFull(lastRdn);
+  document.getElementById('stamp').textContent = txt;
+  document.getElementById('dot').className = 'dot' + (ageH > 24 ? ' stale' : '');
+  var w = document.getElementById('warns');
+  w.textContent = (m.warnings && m.warnings.length) ? 'Замечания к таблице: ' + m.warnings.join('; ') : '';
+  var n = document.getElementById('ovNotice');
+  if (ageH > 24) { n.textContent = 'Данные старше суток — возможно, таблица давно не обновлялась.'; n.hidden = false; } else n.hidden = true;
+}
+
+function renderAll() {
+  renderStamp();
+  var isRdn = state.tab === 'rdn';
+  document.getElementById('filtersMain').hidden = isRdn;
+  document.getElementById('filtersRdn').hidden = !isRdn;
+  var isBuyer = state.tab === 'partner';
+  document.getElementById('decadeChips').hidden = isBuyer;
+  document.getElementById('decadeLabel').hidden = isBuyer;
+  document.getElementById('buyerChips').hidden = !isBuyer;
+  document.getElementById('buyerLabel').hidden = !isBuyer;
+  document.getElementById('periodText').hidden = isBuyer;
+  if (!isRdn) renderChips();
+  ['overview', 'partner', 'rdn'].forEach(function (t) { document.getElementById('tab-' + t).hidden = state.tab !== t; });
+  document.querySelectorAll('.tab').forEach(function (b) { b.setAttribute('aria-selected', String(b.getAttribute('data-tab') === state.tab)); });
+  document.querySelectorAll('#rdnChips .chip').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-rp') === state.rp)); });
+  document.querySelectorAll('#unitSeg button, #unitSegB button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-unit') === state.unit)); });
+  document.getElementById('rdnCustom').hidden = state.rp !== 'custom';
+  if (state.tab === 'overview') renderOverview();
+  else if (state.tab === 'partner') renderBuyer();
+  else renderRdn();
+  // графики других вкладок обновятся при переключении
+}
+
+function save() {
+  try { localStorage.setItem('dash.state', JSON.stringify({ decade: state.decade, buyer: state.buyer, month: state.month, unit: state.unit, rp: state.rp, rdnFrom: state.rdnFrom, rdnTo: state.rdnTo })); } catch (e) {}
+}
+function restore() {
+  try {
+    var s = JSON.parse(localStorage.getItem('dash.state') || 'null');
+    if (s) Object.keys(s).forEach(function (k) { if (s[k] !== undefined) state[k] = s[k]; });
+    var t = localStorage.getItem('dash.theme');
+    if (t) document.documentElement.setAttribute('data-theme', t);
+  } catch (e) {}
+  try { var qt = new URLSearchParams(location.search).get('theme'); if (qt === 'dark' || qt === 'light') document.documentElement.setAttribute('data-theme', qt); } catch (e) {}
+  var h = (location.hash || '').replace('#', '');
+  if (['overview', 'partner', 'rdn'].indexOf(h) !== -1) state.tab = h;
+}
+
+function initControls() {
+  var bl = buyers();
+  if (!state.buyer || !bl.some(function (p) { return p.id === state.buyer; })) state.buyer = bl[0] ? bl[0].id : null;
+  var ms = monthsAvailable();
+  if (!state.month || ms.indexOf(state.month) === -1) state.month = DATA.meta.today.slice(0, 7);
+  if (['all', '1', '2', '3'].indexOf(String(state.decade)) === -1) state.decade = 'all';
+
+  document.querySelectorAll('.tab').forEach(function (b) {
+    b.addEventListener('click', function () { state.tab = b.getAttribute('data-tab'); try { history.replaceState(null, '', '#' + state.tab); } catch (e) {} renderAll(); window.scrollTo({ top: 0 }); });
+  });
+  document.querySelectorAll('#decadeChips .chip').forEach(function (b) { b.addEventListener('click', function () { state.decade = b.getAttribute('data-dec'); save(); renderAll(); }); });
+  document.querySelectorAll('#unitSeg button, #unitSegB button').forEach(function (b) { b.addEventListener('click', function () { state.unit = b.getAttribute('data-unit'); save(); renderAll(); }); });
+  document.querySelectorAll('#rdnChips .chip').forEach(function (b) {
+    b.addEventListener('click', function () {
+      state.rp = b.getAttribute('data-rp');
+      if (state.rp === 'custom' && !(state.rdnFrom && state.rdnTo)) { var r = rdnRange(); if (r) { state.rdnFrom = r[0]; state.rdnTo = r[1]; } }
+      document.getElementById('rdnFrom').value = state.rdnFrom || ''; document.getElementById('rdnTo').value = state.rdnTo || '';
+      save(); renderAll();
+    });
+  });
+  ['rdnFrom', 'rdnTo'].forEach(function (id) {
+    document.getElementById(id).addEventListener('change', function () { state.rdnFrom = document.getElementById('rdnFrom').value || null; state.rdnTo = document.getElementById('rdnTo').value || null; save(); renderAll(); });
+  });
+  document.getElementById('holAsSun').addEventListener('change', function () { renderAll(); });
+  document.getElementById('rdnFrom').value = state.rdnFrom || ''; document.getElementById('rdnTo').value = state.rdnTo || '';
+
+  document.getElementById('btnRefresh').addEventListener('click', function () { boot(true); });
+  document.getElementById('btnRetry').addEventListener('click', function () { boot(true); });
+  document.getElementById('btnTheme').addEventListener('click', function () { applyTheme(currentDark() ? 'light' : 'dark'); });
+  if (window.matchMedia) { try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () { if (!document.documentElement.getAttribute('data-theme')) renderAll(); }); } catch (e) {} }
+  window.addEventListener('hashchange', function () { var h = location.hash.replace('#', ''); if (['overview', 'partner', 'rdn'].indexOf(h) !== -1 && h !== state.tab) { state.tab = h; renderAll(); } });
+}
+
+restore();
+boot(false);
+</script>
+</body>
+</html>
