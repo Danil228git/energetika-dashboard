@@ -656,9 +656,10 @@ function agg(partners, from, to) {
   var r = { mwh: 0, fact: 0, profit: 0, plan: 0, planToDate: 0, factpay: 0, refund: 0, balance: 0, hasProfit: false, factDays: 0 };
   var today = DATA.meta.today;
   partners.forEach(function (p) {
+    var seenMwh = {};
     p.days.forEach(function (d) {
       if (d.kind === 0 && inRange(d.deliv, from, to)) {
-        r.mwh += d.mwh || 0;
+        if (d.fact !== null && !seenMwh[d.deliv]) { r.mwh += d.mwh || 0; seenMwh[d.deliv] = true; }
         if (d.fact !== null) { r.fact += d.fact; r.factDays++; }
         if (d.profit !== null) { r.profit += d.profit; r.hasProfit = true; }
       }
@@ -786,9 +787,11 @@ function renderToday() {
  * ============================================================ */
 function dailyMap(p, key, dateKey, onlyDays) {
   var m = {};
+  var seen = {};
   p.days.forEach(function (d) {
     if (onlyDays && d.kind !== 0) return;
     if (d[key] === null || d[key] === undefined) return;
+    if (key === 'mwh') { if (d.fact === null || seen[d[dateKey]]) return; seen[d[dateKey]] = true; }
     m[d[dateKey]] = (m[d[dateKey]] || 0) + d[key];
   });
   return m;
@@ -959,9 +962,10 @@ function renderBuyer() {
   [1, 2, 3].forEach(function (k) { decs[k].sort(function (a, b) { return (a.kind !== b.kind) ? b.kind - a.kind : (a.deliv < b.deliv ? -1 : 1); }); });
 
   function sum(arr, key, onlyDays) { var s = 0, any = false; arr.forEach(function (d) { if (onlyDays && d.kind !== 0) return; if (d[key] !== null && d[key] !== undefined) { s += d[key]; any = true; } }); return any ? s : null; }
+  function sumMwh(arr) { var s = 0, seen = {}; arr.forEach(function (d) { if (d.kind === 0 && d.fact !== null && !seen[d.deliv]) { s += d.mwh || 0; seen[d.deliv] = true; } }); return s; }
   function tot(arr) {
     var planDue = 0; arr.forEach(function (d) { if (d.pay <= today) planDue += d.plan || 0; });
-    return { plan: sum(arr, 'plan') || 0, fact: sum(arr, 'factpay') || 0, planDue: planDue, mwh: sum(arr, 'mwh', true) || 0, cons: sum(arr, 'fact', true) || 0, profit: sum(arr, 'profit', true), sumVat: sum(arr, 'sum') || 0 };
+    return { plan: sum(arr, 'plan') || 0, fact: sum(arr, 'factpay') || 0, planDue: planDue, mwh: sumMwh(arr), cons: sum(arr, 'fact', true) || 0, profit: sum(arr, 'profit', true), sumVat: sum(arr, 'sum') || 0 };
   }
   var tM = tot(rows), tD = { 1: tot(decs[1]), 2: tot(decs[2]), 3: tot(decs[3]) };
   var diff = tM.fact - tM.planDue;
